@@ -2,14 +2,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
+import re
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# Load .env locally (Render ignores this and uses its own env vars)
+# Load environment variables
 load_dotenv()
 
 # -----------------------------
-# App initialization
+# App Initialization
 # -----------------------------
 app = FastAPI(
     title="Voice Assistant API",
@@ -17,7 +18,7 @@ app = FastAPI(
 )
 
 # -----------------------------
-# CORS Configuration (WORKING)
+# CORS Configuration
 # -----------------------------
 app.add_middleware(
     CORSMiddleware,
@@ -52,9 +53,8 @@ def root():
 async def ask_ai(request: AskRequest):
     user_text = request.text.lower().strip()
 
-    # 🛑 STOP / EXIT COMMANDS
+    # 🛑 Stop / Exit Commands
     stop_words = ["stop", "exit", "quit", "bye", "goodbye"]
-
     if user_text in stop_words:
         return {
             "reply": "Okay, stopping the assistant. Goodbye 👋",
@@ -66,7 +66,7 @@ async def ask_ai(request: AskRequest):
         if not api_key:
             return {"error": "PERPLEXITY_API_KEY not set"}
 
-        # ✅ Client creation INSIDE request (important for Render)
+        # Create client per request (important for Render)
         client = OpenAI(
             api_key=api_key,
             base_url="https://api.perplexity.ai"
@@ -80,8 +80,13 @@ async def ask_ai(request: AskRequest):
             ]
         )
 
+        raw_reply = response.choices[0].message.content
+
+        # ✅ Remove citation numbers like [1][2][4]
+        clean_reply = re.sub(r"\[\d+\]", "", raw_reply).strip()
+
         return {
-            "reply": response.choices[0].message.content,
+            "reply": clean_reply,
             "end": False
         }
 
