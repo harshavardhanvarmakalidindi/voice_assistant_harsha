@@ -3,6 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 from openai import OpenAI
+from dotenv import load_dotenv
+
+# Load .env locally (Render ignores this and uses its own env vars)
+load_dotenv()
 
 # -----------------------------
 # App initialization
@@ -13,15 +17,15 @@ app = FastAPI(
 )
 
 # -----------------------------
-# CORS Configuration
+# CORS Configuration (WORKING)
 # -----------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:5500",
+        "https://harshaprojecttest3.netlify.app",
         "https://gilded-custard-8db3f1.netlify.app"
-        "https://harshaprojecttest3.netlify.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -59,10 +63,10 @@ async def ask_ai(request: AskRequest):
 
     try:
         api_key = os.getenv("PERPLEXITY_API_KEY")
-
         if not api_key:
             return {"error": "PERPLEXITY_API_KEY not set"}
 
+        # ✅ Client creation INSIDE request (important for Render)
         client = OpenAI(
             api_key=api_key,
             base_url="https://api.perplexity.ai"
