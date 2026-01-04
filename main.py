@@ -53,11 +53,11 @@ def root():
 async def ask_ai(request: AskRequest):
     user_text = request.text.lower().strip()
 
-    # 🛑 Stop / Exit Commands
-    stop_words = ["stop", "exit", "quit", "bye", "goodbye"]
+    # Stop / Exit Commands
+    stop_words = ["stop", "exit", "quit", "bye", "goodbye","break"]
     if user_text in stop_words:
         return {
-            "reply": "Okay, stopping the assistant. Goodbye 👋",
+            "reply": "Okay, stopping the assistant. Goodbye ",
             "end": True
         }
 
